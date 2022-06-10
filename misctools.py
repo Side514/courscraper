@@ -37,7 +37,22 @@ def save_to_json(data, filename: str):
     with open(filename, "w", encoding="utf-8") as output:
         # 不处理Unicode字符
         json.dump(data, output, indent=4, ensure_ascii=False)
-    print(f"{len(data)} reviews have been saved to {filename}.")
+    print(f"{len(data)} items have been saved to {filename}.")
+
+
+def save_to_csv(data: List[dict], filename: str, fieldnames: list):
+    """将数据保存至csv文件中.
+
+    Args:
+        data (List[dict]): 数据.
+        name (str): 文件名.
+        fieldnames (list): 表头.
+    """
+    with open(filename, "w", newline="", encoding="utf-8-sig") as output:
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(data)
+    print(f"{len(data)} items have been saved to {filename}.")
 
 
 def progress_bar(done: int, total: int):

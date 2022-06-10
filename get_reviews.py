@@ -64,9 +64,8 @@ def get_from_coursera(url: str) -> list:
         params["page"] += 1
         if params["page"] > total:
             break
-        soup = get_soup(url, params=params)
-        # 等待时间
         time.sleep(2)
+        soup = get_soup(url, params=params)
     print("\n", end="")
     return results
 

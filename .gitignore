@@ -1,6 +1,6 @@
 # ignore output files
-.json
-.csv
+*.json
+*.csv
 # ignore pycache
 /__pycache__
 # ignore testing scripts

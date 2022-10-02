@@ -1,13 +1,12 @@
 # Python 3.7.2
-# 获取coursera按特定关键词查找的课程列表
-from misctools import save_to_csv
-from misctools import progress_bar
+# 按特定关键词查找coursera课程列表
+from misc import save_to_csv, progress_bar
 import time
 import requests
 import json
 
 
-def get_all_courses(query: str) -> list:
+def query_courses(query: str) -> list:
     """获取coursera按特定关键词查找的课程列表
 
     Args:
@@ -17,7 +16,7 @@ def get_all_courses(query: str) -> list:
         list: 课程信息列表, 每门课程信息为dict格式
     """
 
-    def get_courses(page: int = 0) -> dict:
+    def query_more(page: int = 0) -> dict:
         """按page号请求课程数据.
 
         Args:
@@ -37,11 +36,7 @@ def get_all_courses(query: str) -> list:
             "requests": [
                 {
                     "indexName": "prod_all_launched_products_term_optimization",
-                    "params": "query="
-                    + query
-                    + "&hitsPerPage=100&page="
-                    + str(page)
-                    + "&ruleContexts=%5B%22zh%22%5D",
+                    "params": "query=" + query + "&hitsPerPage=100&page=" + str(page) + "&ruleContexts=%5B%22zh%22%5D",
                 }
             ]
         }
@@ -50,7 +45,8 @@ def get_all_courses(query: str) -> list:
             "x-algolia-api-key": "dcc55281ffd7ba6f24c3a9b18288499b",
         }
         header = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53",
+            "content-type": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.53",
         }
         # 发送请求
         response = requests.post(url, json=payload, params=params, headers=header)
@@ -61,7 +57,7 @@ def get_all_courses(query: str) -> list:
     print("Querying...")
     results = []
     page = 0
-    data = get_courses()
+    data = query_more()
     # 返回课程数量和总page数
     counts = data["nbHits"]
     if counts == 0:
@@ -92,9 +88,45 @@ def get_all_courses(query: str) -> list:
         if page >= total:
             break
         time.sleep(2)
-        data = get_courses(page)
+        data = query_more(page)
     print("\n", end="")
     return results
+
+
+def get_course_ID(url: str) -> str:
+    """通过url获取课程ID
+
+    Args:
+        url (str): 课程首页网址
+
+    Returns:
+        str: 课程ID
+    """
+    # 请求信息
+    api = "https://lua9b20g37-dsn.algolia.net/1/indexes/*/queries"
+    payload = {
+        "requests": [
+            {
+                "indexName": "prod_all_launched_products_term_optimization",
+                "params": "query=" + url.split("/")[-1] + "&hitsPerPage=1&page=0",
+            }
+        ]
+    }
+    params = {
+        "x-algolia-application-id": "LUA9B20G37",
+        "x-algolia-api-key": "dcc55281ffd7ba6f24c3a9b18288499b",
+    }
+    header = {
+        "content-type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.53",
+    }
+    # 发送请求
+    response = requests.post(api, json=payload, params=params, headers=header)
+    response.encoding = response.apparent_encoding
+    course_data = json.loads(response.text)["results"][0]["hits"][0]
+    if "https://www.coursera.org" + course_data["objectUrl"] != url:
+        raise SystemExit("Get courseID failed!")
+    return course_data["objectID"].replace("course", "COURSE")
 
 
 def scrape(query: str):
@@ -103,7 +135,7 @@ def scrape(query: str):
     Args:
         query (str): 查询关键字
     """
-    data = get_all_courses(query)
+    data = query_courses(query)
     if data:
         save_to_csv(data, "list-" + query + ".csv", data[0].keys())
 

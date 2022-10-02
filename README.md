@@ -16,9 +16,8 @@ clone仓库到本地，python环境运行。
 
 - rating（评分）
 - text（评论文本）
-- helpful（“认为有帮助”个数）
-- name（用户名）
 - date（日期）
+- completed（是否完成）
 
 输出到文件：`coursera-课程名.json`
 

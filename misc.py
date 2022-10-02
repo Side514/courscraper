@@ -11,7 +11,7 @@ def get_soup(url: str, params: dict = None) -> BeautifulSoup:
 
     Args:
         url (str): 网址.
-        params (dict, optional): 参数. 默认为{}.
+        params (dict, optional): GET请求参数. 默认为{}.
 
     Returns:
         BeautifulSoup: 解析后的html文档.
@@ -31,7 +31,7 @@ def save_to_json(data, filename: str):
     """将数据保存至json文件中.
 
     Args:
-        data (Any): 数据.
+        data (Any): 数据（对象）.
         name (str): 文件名.
     """
     with open(filename, "w", encoding="utf-8") as output:

@@ -108,7 +108,7 @@ def get_course_ID(url: str) -> str:
         "requests": [
             {
                 "indexName": "prod_all_launched_products_term_optimization",
-                "params": "query=" + url.split("/")[-1] + "&hitsPerPage=1&page=0",
+                "params": "query=" + url.split("/")[-1] + "&hitsPerPage=5&page=0",
             }
         ]
     }
@@ -123,10 +123,11 @@ def get_course_ID(url: str) -> str:
     # 发送请求
     response = requests.post(api, json=payload, params=params, headers=header)
     response.encoding = response.apparent_encoding
-    course_data = json.loads(response.text)["results"][0]["hits"][0]
-    if "https://www.coursera.org" + course_data["objectUrl"] != url:
-        raise SystemExit("Get courseID failed!")
-    return course_data["objectID"].replace("course", "COURSE")
+    hit_courses = json.loads(response.text)["results"][0]["hits"]
+    for course in hit_courses:
+        if "https://www.coursera.org" + course["objectUrl"] == url:
+            return course["objectID"].replace("course", "COURSE")
+    raise SystemExit("Get courseID failed!")
 
 
 def scrape(query: str):

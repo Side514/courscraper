@@ -1,48 +1,67 @@
-# coursera-scraper
+# courscraper
 
-爬取coursera平台指定课程的基本信息及全部评论的工具。
+A simple data scraper for coursera.
 
-## 使用方法
+## Features
 
-clone仓库到本地，python环境运行。
+- Search course (TODO)
+- Get course meta & syllabus
+- Get course reviews
+- Download videos & subtitles
 
-## 特性
+## Usage
 
-### get_reviews.py
+- Clone this repository
+- Install requirements
 
-输入coursera平台课程URL，返回该课程所有评论。
+```bash
+pip install requirements.txt
+```
 
-每条评论的属性：
+- Copy "./courscraper" to your working directory
 
-- rating（评分）
-- text（评论文本）
-- date（日期）
-- completed（是否完成）
+## Samples
 
-输出到文件：`coursera-课程名.json`
+### Get course infomation & reviews
 
-### get_course_list.py
+```python
+from courscraper import Scraper
+from courscraper.misc import save_to_json
 
-输入查询关键字，利用coursera自带的搜索功能，查询数据库接口，返回平台查询到的所有课程信息。
+scraper = Scraper(dump_errors=True)
 
-每门课程的属性：
+course = scraper.get_course_meta("https://www.coursera.org/learn/hanzi")
+syllabus = scraper.get_course_syllabus(course.id)
+reviews = scraper.get_course_reviews(course.id)
 
-- 链接
-- 课程名
-- 提供方
-- 注册人数
-- 评价人数
-- 评分
-- 难度级别
-- 学习计划
-- 课程长度
-- 平均学习时长
-- 技能标签
-- 授课语言
-- 字幕语言
+save_to_json(course.__dict__, f"{course.slug}.meta.json")
+save_to_json(syllabus, f"{course.slug}.syllabus.json")
+save_to_json(reviews, f"{course.slug}.reviews.json")
+```
 
-输出到文件：`list-查询关键字.csv`
+### Download video & subtitles
 
-## 依赖包
+```python
+import json
+from courscraper import Scraper, Course_Json
 
-- beautifulsoup4
+# you can load data from files
+with open("hanzi.meta.json", "r", encoding="utf8") as file:
+    course = Course_Json(**json.load(file))
+with open("hanzi.syllabus.json", "r", encoding="utf8") as file:
+    syllabus = json.load(file)
+
+scraper = Scraper(dump_errors=True)
+
+for module in syllabus["modules"]:
+    if "lecture" not in module["items"].keys():
+        continue
+    for lecture_data in module["items"]["lecture"]:
+        lecture = scraper.get_lecture_meta(
+            course,
+            lecture_data["id"],
+            resolution=540,  # 360 by default
+            language_codes=["zh-CN"],  # ["zh-CN", "en"] by default
+        )
+        scraper.download_lecture(lecture, directory="./", sleep_time=1)
+```

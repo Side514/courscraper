@@ -1,0 +1,2 @@
+html2text==2024.2.26
+requests==2.27.1
